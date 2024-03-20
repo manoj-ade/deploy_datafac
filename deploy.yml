@@ -1,5 +1,3 @@
-name: Deploy Azure Data Factory
-
 on:
   push:
     branches:
@@ -22,13 +20,7 @@ jobs:
       run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
       
     - name: Create Azure Data Factory (Dev)
-      run: |
-        
-        az datafactory create --name datafac-deployd --resource-group dev-rg --location eastus
-
-    
+      run: az datafactory create --name datafac-deployd --resource-group dev-rg --location eastus
 
     - name: Create Azure Data Factory (Prod)
-      run: |
-        
-        az datafactory create --name datafac-deployp --resource-group prod-rg --location prod-rg
+      run: az datafactory create --name datafac-deployp --resource-group prod-rg --location prod-rg
