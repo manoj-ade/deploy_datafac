@@ -1,4 +1,4 @@
-name: Deploy Azure Data Factory
+name: Deploy Azure Data Factory (PowerShell)
 
 on:
   push:
@@ -7,28 +7,35 @@ on:
 
 jobs:
   deploy_data_factory:
-    runs-on: self-hosted
-    
+    runs-on: self-hosted  # Run on a Windows runner (PowerShell is pre-installed)
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      
-    - name: Set up Azure CLI
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.26.2
-      
+
+    - name: Install Az.DataFactory module
+      run: |
+        # Use the latest stable version
+        $moduleVersion = (Invoke-WebRequest -Uri 'https://api.powershellgallery.com/v1/Packages/Az.DataFactory/Versions' -UseBasicParsing).Content | ConvertFrom-Json | Select-Object -ExpandProperty versions | Where-Object { $_.deleted -eq $false } | Sort-Object -LastVersion | Select-Object -First 1
+
+        Install-Module Az.DataFactory -RequiredVersion $moduleVersion.version
+
     - name: Login to Azure
-      run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-      
+      run: |
+        Connect-AzAccount -ServicePrincipal -Credential (New-Object System.Management.Automation.PSCredential (${secrets.AZURE_CLIENT_ID}, (ConvertTo-SecureString -AsPlainText -Force ${{ secrets.AZURE_CLIENT_SECRET }}))) -TenantId ${{ secrets.AZURE_TENANT_ID }}
+
     - name: Create Azure Data Factory (Dev)
       run: |
-        
-        az datafactory create --name datafac-deployd --resource-group dev-rg --location eastus
+        $devRgName = "dev-rg"
+        $devLocation = "eastus"
+        $devAdfName = "datafac-dev"
 
-    
+        New-AzDataFactory -ResourceGroupName $devRgName -Location $devLocation -Name $devAdfName
 
     - name: Create Azure Data Factory (Prod)
       run: |
-        
-        az datafactory create --name datafac-deployp --resource-group prod-rg --location prod-rg
+        $prodRgName = "prod-rg"
+        $prodLocation = "eastus"  # Change location as needed
+        $prodAdfName = "datafac-prod"
+
+        New-AzDataFactory -ResourceGroupName $prodRgName -Location $prodLocation -Name $prodAdfName
