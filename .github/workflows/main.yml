@@ -7,13 +7,13 @@ on:
 
 jobs:
   deploy_data_factory:
-    runs-on: self-hosted  # Run on a Windows runner (PowerShell is pre-installed)
+    runs-on: self-hosted  # Run on a Windows runner
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install Az.DataFactory module
+    - name: Install Az.DataFactory module (Latest Stable)
       run: |
         # Use the latest stable version
         $moduleVersion = (Invoke-WebRequest -Uri 'https://api.powershellgallery.com/v1/Packages/Az.DataFactory/Versions' -UseBasicParsing).Content | ConvertFrom-Json | Select-Object -ExpandProperty versions | Where-Object { $_.deleted -eq $false } | Sort-Object -LastVersion | Select-Object -First 1
@@ -35,7 +35,7 @@ jobs:
     - name: Create Azure Data Factory (Prod)
       run: |
         $prodRgName = "prod-rg"
-        $prodLocation = "eastus"  # Change location as needed
+        $prodLocation = "eastus  # Change location as needed
         $prodAdfName = "datafac-prod"
 
         New-AzDataFactory -ResourceGroupName $prodRgName -Location $prodLocation -Name $prodAdfName
